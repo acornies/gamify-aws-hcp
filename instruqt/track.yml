@@ -1,6 +1,7 @@
 slug: gamify-aws-and-hcp
+id: gnmls6ynla9i
 title: Gamify AWS and HCP
-teaser: Compete with your colleagues to see who can provision and secure their AWS and HCP infrastructure the fastest!
+teaser: Learn how to build tracks with an AWS account
 description: |-
   Learn how to use a sandboxed AWS account in your Instruqt track.
 
@@ -13,8 +14,7 @@ description: |-
   The default settings of this track only allow t2.nano sized ec2 instances. You should adjust the IAM policy to fit your own use case and application size.
 icon: https://cdn.instruqt.com/assets/templates/aws.png
 tags:
-- Cloud Account
-- Docker
+- WIP
 owner: hashicorp
 developers:
 - andrew.cornies@hashicorp.com
@@ -22,3 +22,4 @@ lab_config:
   overlay: false
   width: 33
   position: right
+checksum: "3506048930143551285"
