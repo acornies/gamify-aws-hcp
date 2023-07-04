@@ -1,0 +1,24 @@
+slug: gamify-aws-and-hcp
+title: Gamify AWS and HCP
+teaser: Compete with your colleagues to see who can provision and secure their AWS and HCP infrastructure the fastest!
+description: |-
+  Learn how to use a sandboxed AWS account in your Instruqt track.
+
+  **This track demonstrates how to:**
+    - Link an AWS cloud account to your sandbox
+    - How to use the cloud client Docker container
+    - Use the AWS CLI and UI from our learn environment
+    - Limit usage of the cloud account using IAM and SCP policies
+
+  The default settings of this track only allow t2.nano sized ec2 instances. You should adjust the IAM policy to fit your own use case and application size.
+icon: https://cdn.instruqt.com/assets/templates/aws.png
+tags:
+- Cloud Account
+- Docker
+owner: hashicorp
+developers:
+- andrew.cornies@hashicorp.com
+lab_config:
+  overlay: false
+  width: 33
+  position: right
