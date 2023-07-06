@@ -1,18 +1,24 @@
 slug: gamify-aws-and-hcp
 id: gnmls6ynla9i
 title: Gamify AWS and HCP
-teaser: Compete with your colleagues to see who can provision and secure their AWS
-  and HCP infrastructure the fastest!
-description: |-
-  Learn how to use a sandboxed AWS account in your Instruqt track.
-
-  **This track demonstrates how to:**
-    - Link an AWS cloud account to your sandbox
-    - How to use the cloud client Docker container
-    - Use the AWS CLI and UI from our learn environment
-    - Limit usage of the cloud account using IAM and SCP policies
-
-  The default settings of this track only allow t2.nano sized ec2 instances. You should adjust the IAM policy to fit your own use case and application size.
+teaser: A gamified workshop for accounts using AWS and HCP services. Use this track
+  to generate excitement for an account with relevant architecture.
+description: "This track is designed to be used in a half day event where participants
+  compete by completing the challenges in a 3 hour time limit.\n\n**The challenges**\n
+  - \U0001F433 Build and push a Docker container for the X application (source code
+  provided)\n - \U0001F4DD Use Terraform to provision an AWS ECS container and an
+  AWS RDS instance for the X application\n - \U0001F680 Use Terraform to provision
+  an HCP Vault cluster or HCP Vault Secrets instance\n - ☁️ Hook up your Terraform
+  code/workspace to Terraform Cloud\n - \U0001F512 Update the X application running
+  in ECS by integrating HCP Vault to secure the database connection\n\n**Scoring considerations**\n
+  - Terraform coding style (10 points)\n - Networking between AWS and HCP Vault (10
+  points)\n - Terraform Cloud dynamic workspace credentials (10 points)\n - Terraform
+  Cloud policy sets (10 points)\n - Use of Vault's secrets engines (10 points)\n -
+  Track completion and time to completion (50 points)\n\n**Tracking completion and
+  completion time**\n\nTo effectively track completion and time to completion, you
+  will need to utilize Instruqt's \"live event\"\ntype when creating the invite for
+  the event. This will allow you to see the progress of each participant\nand report
+  on it for scoring purposes."
 icon: https://cdn.instruqt.com/assets/templates/aws.png
 tags:
 - WIP
@@ -23,4 +29,4 @@ lab_config:
   overlay: false
   width: 33
   position: right
-checksum: "902944703527573492"
+checksum: "12862825710479957905"
