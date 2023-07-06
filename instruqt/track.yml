@@ -1,7 +1,8 @@
 slug: gamify-aws-and-hcp
 id: gnmls6ynla9i
 title: Gamify AWS and HCP
-teaser: Learn how to build tracks with an AWS account
+teaser: Compete with your colleagues to see who can provision and secure their AWS
+  and HCP infrastructure the fastest!
 description: |-
   Learn how to use a sandboxed AWS account in your Instruqt track.
 
@@ -22,4 +23,4 @@ lab_config:
   overlay: false
   width: 33
   position: right
-checksum: "3506048930143551285"
+checksum: "902944703527573492"
