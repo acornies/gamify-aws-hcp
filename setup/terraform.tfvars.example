@@ -1,0 +1,7 @@
+participants = {
+  "super-awesome-team" = {
+    email = "andrew.cornies@hashicorp.com"
+  team = "super-awesome" },
+  # "kinda-awesome-team" = {
+  #     email= "example@hashicorp.com" }
+}
