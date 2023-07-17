@@ -10,37 +10,9 @@ containers:
   cmd: code-server workspace /app --user-data-dir /user-data --auth none --disable-telemetry
   ports:
   - 8080
-
 aws_accounts:
-- name: aws-iam-track
-  iam_policy: |-
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-            "Sid":"EC2DefaultAllow",
-            "Effect": "Allow",
-            "Action": "ec2:*",
-            "Resource": "*"
-        }
-      ]
-    }
-  scp_policy: |-
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Sid": "RequireLessThanXLInstanceType",
-          "Effect": "Deny",
-          "Action": "ec2:RunInstances",
-          "Resource": "arn:aws:ec2:::instance/*",
-          "Condition": {
-            "StringNotEquals": {
-              "ec2:InstanceType": [
-                "t2.nano"
-              ]
-            }
-          }
-        }
-      ]
-    }
+- name: gamify-track
+  managed_policies:
+  - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+  - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+  - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
