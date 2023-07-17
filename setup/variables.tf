@@ -1,8 +1,3 @@
-variable "github_organization" {
-  # populate the GitHub org for the event
-  default = "tmx-gameday-aug16"
-}
-
 variable "participants" {
   type = map(any)
 }
@@ -11,9 +6,16 @@ variable "event_name" {
   default = "gamify-cluster"
 }
 
+variable "event_tfc_organization" {
+  # populate the TFC org name with .tfvars
+}
+
 variable "event_hcp_project_id" {
-  # populate the HCP project id
-  default = "e49658b6-6c98-46c8-88a6-a7d10bcd3645"
+  # populate the HCP project id with .tfvars
+}
+
+variable "event_github_organization" {
+  # populate the GitHub org name for the event with with .tfvars
 }
 
 variable "hcp_vault_region" {

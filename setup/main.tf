@@ -15,7 +15,6 @@ terraform {
 }
 
 provider "tfe" {
-  # Configuration options
 }
 
 resource "hcp_hvn" "event_cluster" {
@@ -71,7 +70,7 @@ EOT
 resource "vault_github_auth_backend" "participants" {
   for_each     = var.participants
   namespace    = vault_namespace.participants[each.key].path_fq
-  organization = var.github_organization
+  organization = var.event_github_organization
 }
 
 # Use the "team" property in the participants variable to assign the appropriate GitHub
@@ -82,4 +81,51 @@ resource "vault_github_team" "participants" {
   backend   = vault_github_auth_backend.participants[each.key].id
   team      = each.value.team
   policies  = ["admin"]
+}
+
+data "tfe_organization" "event_org" {
+  name = var.event_tfc_organization
+}
+
+resource "tfe_project" "event_project" {
+  organization = data.tfe_organization.event_org.name
+  name         = var.event_name
+}
+
+resource "tfe_team" "participants" {
+  for_each     = var.participants
+  organization = data.tfe_organization.event_org.name
+  name         = each.value.team
+  visibility   = "organization"
+  organization_access {
+    manage_vcs_settings = true
+    manage_modules      = true
+    manage_run_tasks    = true
+  }
+}
+
+resource "tfe_workspace" "challenges" {
+  for_each     = var.participants
+  name         = each.key
+  organization = data.tfe_organization.event_org.name
+  tag_names    = ["${var.event_name}"]
+  project_id   = tfe_project.event_project.id
+}
+
+resource "tfe_team_access" "challenges" {
+  for_each     = var.participants
+  access       = "admin"
+  team_id      = tfe_team.participants[each.key].id
+  workspace_id = tfe_workspace.challenges[each.key].id
+}
+
+resource "tfe_organization_membership" "participants" {
+  for_each     = var.participants
+  organization = data.tfe_organization.event_org.name
+  email        = each.value.email
+}
+
+resource "tfe_team_token" "participants" {
+  for_each = var.participants
+  team_id  = tfe_team.participants[each.key].id
 }

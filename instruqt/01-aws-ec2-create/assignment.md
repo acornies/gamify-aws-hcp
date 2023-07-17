@@ -11,9 +11,10 @@ notes:
 
     Please wait while we provision the AWS account.
 tabs:
-- title: Cloud CLI
-  type: terminal
-  hostname: cloud-client
+- title: Code editor
+  type: service
+  hostname: vscode
+  port: 8080
 - title: AWS Console
   type: service
   hostname: cloud-client

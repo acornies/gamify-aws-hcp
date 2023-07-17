@@ -9,16 +9,16 @@ description: "This track is designed to be used in a half day event where partic
   provided)\n - \U0001F4DD Use Terraform to provision an AWS ECS container and an
   AWS RDS instance for the X application\n - \U0001F680 Use Terraform to provision
   an HCP Vault cluster or HCP Vault Secrets instance\n - ☁️ Hook up your Terraform
-  code/workspace to Terraform Cloud (team token provided)\n - \U0001F512 Update the X application running
-  in ECS by integrating HCP Vault to secure the database connection\n\n**Scoring considerations**\n
-  - Terraform coding style (10 points)\n - Networking between AWS and HCP Vault (10
-  points)\n - Terraform Cloud dynamic workspace credentials (10 points)\n - Terraform
-  Cloud policy sets (10 points)\n - Use of Vault's secrets engines (10 points)\n -
-  Does it work? (50 points)\n\n**Tracking completion and
-  completion time**\n\nTo effectively track completion and time to completion, you
-  will need to utilize Instruqt's \"live event\"\ntype when creating the invite for
-  the event. This will allow you to see the progress of each participant\nand report
-  on it for scoring purposes."
+  code/workspace to Terraform Cloud (team token provided)\n - \U0001F512 Update the
+  X application running in ECS by integrating HCP Vault to secure the database connection\n\n**Scoring
+  considerations**\n - Terraform coding style (10 points)\n - Networking between AWS
+  and HCP Vault (10 points)\n - Terraform Cloud dynamic workspace credentials (10
+  points)\n - Terraform Cloud policy sets (10 points)\n - Use of Vault's secrets engines
+  (10 points)\n - Does it work? (50 points)\n\n**Tracking completion and completion
+  time**\n\nTo effectively track completion and time to completion, you will need
+  to utilize Instruqt's \"live event\"\ntype when creating the invite for the event.
+  This will allow you to see the progress of each participant\nand report on it for
+  scoring purposes."
 icon: https://cdn.instruqt.com/assets/templates/aws.png
 tags:
 - WIP
@@ -33,4 +33,4 @@ lab_config:
   overlay: false
   width: 33
   position: right
-checksum: "12862825710479957905"
+checksum: "12874252263266254602"
