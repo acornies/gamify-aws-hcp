@@ -83,6 +83,17 @@ resource "vault_github_team" "participants" {
   policies  = ["admin"]
 }
 
+# Create the secrets v2 engine in each particpant namespace under path "kv"
+resource "vault_mount" "participants" {
+  for_each  = var.participants
+  namespace = vault_namespace.participants[each.key].path_fq
+  path      = "kv"
+  type      = "kv"
+  options = {
+    version = "2"
+  }
+}
+
 data "tfe_organization" "event_org" {
   name = var.event_tfc_organization
 }
@@ -112,6 +123,7 @@ resource "tfe_workspace" "challenges" {
   project_id   = tfe_project.event_project.id
 }
 
+# Add team admin access to workspace
 resource "tfe_team_access" "challenges" {
   for_each     = var.participants
   access       = "admin"
@@ -119,13 +131,48 @@ resource "tfe_team_access" "challenges" {
   workspace_id = tfe_workspace.challenges[each.key].id
 }
 
+# Add the team caption email to the TFC organization
 resource "tfe_organization_membership" "participants" {
   for_each     = var.participants
   organization = data.tfe_organization.event_org.name
   email        = each.value.email
 }
 
+# Create a TFC team token per team
 resource "tfe_team_token" "participants" {
   for_each = var.participants
   team_id  = tfe_team.participants[each.key].id
+}
+
+# Save TFC team token in Vault
+resource "vault_kv_secret_v2" "tfc_team_token" {
+  for_each            = var.participants
+  namespace           = vault_namespace.participants[each.key].path_fq
+  mount               = vault_mount.participants[each.key].path
+  name                = "terraform"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      team_token = tfe_team_token.participants[each.key].token,
+    }
+  )
+}
+
+# Add HCP Vault endpoint as a TF workspace variable
+resource "tfe_variable" "hcp_vault_endpoint" {
+  for_each     = var.participants
+  key          = "VAULT_ADDR"
+  value        = hcp_vault_cluster.event_cluster.vault_public_endpoint_url
+  category     = "env"
+  workspace_id = tfe_workspace.challenges[each.key].id
+}
+
+# Add HCP Vault namespace as a TF workspace variable
+resource "tfe_variable" "hcp_vault_namespace" {
+  for_each     = var.participants
+  key          = "VAULT_NAMESPACE"
+  value        = each.key
+  category     = "env"
+  workspace_id = tfe_workspace.challenges[each.key].id
 }
