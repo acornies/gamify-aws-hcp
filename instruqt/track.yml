@@ -9,16 +9,15 @@ description: "This track is designed to be used in a half day event where partic
   \ \U0001F433 Build and push a Docker container for the X application to AWS ECR
   (source code provided)\n-  \U0001F4DD Use Terraform to provision an AWS Lambda function
   and an AWS RDS instance for the X application\n-  \U0001F680 Use Terraform to configure
-  your HCP Vault namespace (namespace provided) with the AWS auth method\n-  \U0001F512
-  Secure the X application's database connection running in AWS Lambda using HashiCorp
-  Vault\n\n### Scoring considerations\n- Does it work? (64 points)\n\t\t- The AWS
-  Lambda function has a publicly available URL and works! (32)\n\t\t- Did you use
-  Terraform Cloud to deploy it? (32)\n- Terraform coding style (up to 8 points)\n-
-  Use Terraform Cloud VCS driven runs (8 points)\n- Lambda integration with HCP Vault
-  (16 points)\n- Completion time (up to 8 points)\n\nBonus\n - Use of 1 or more Terraform
-  Cloud policy sets (8 points)\n - Use of Terraform Cloud dynamic AWS credentials
-  (8 points)\n - Use Vault's dynamic database secrets engine with the lambda (8 points)\n\nPerfect
-  score: **128** (in reference to 128-bit era gaming consoles)\n\n### Tracking completion
+  your HCP Vault namespace (namespace provided)\n-  \U0001F512 Secure the X application's
+  database connection running in AWS Lambda using HashiCorp Vault\n\n### Scoring considerations\n-
+  Does it work? ✅\n- The application has a publicly available URL: 200 OK response
+  (32)\n- Did you use Terraform Cloud to deploy it? (32)\n- Terraform coding style
+  (up to 8)\n- Use Terraform Cloud VCS driven runs (8)\n- Lambda integration with
+  HCP Vault (16)\n- Completion time (up to 8)\n\n### Bonus\n - Use of 1 or more Terraform
+  Cloud policy sets (8)\n - Use of Terraform Cloud dynamic AWS credentials (8)\n -
+  Use Vault's dynamic database secrets engine with the lambda (8)\n\nPerfect score:
+  **128** (in reference to 128-bit era gaming consoles)\n\n### Tracking completion
   time\n\nTo effectively track completion time, you will need to utilize Instruqt's
   \"live event\" type when creating the invite for the event. This will allow you
   to see the progress of each participant and report on it for scoring purposes."
@@ -37,4 +36,4 @@ lab_config:
   overlay: false
   width: 33
   position: right
-checksum: "11116605750020586430"
+checksum: "16581664588456641015"
