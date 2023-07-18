@@ -1,40 +1,37 @@
-#!/bin/bash
-echo "Running challenge setup script on vscode container"
+#!/bin/bash -l
+
+export CODE_HOME=/app
+source /etc/os-release
+echo "Running track setup script on vscode container"
 
 # Adjust VSCode settings
 mkdir -p /user-data/User
 cat > /user-data/User/settings.json <<EOF
 {
-  "workbench.colorTheme": "Default Dark+"
+  "workbench.colorTheme": "Default Dark+",
+  "terminal.integrated.cwd": "/app",
+  "terminal.integrated.enableMultiLinePasteWarning": false
 }
 EOF
+
+# VS Code extension Terraform extension
+# code --install-extension hashicorp.terraform
 
 # Clone the example repository
 git clone https://github.com/acornies/gamify-participant.git /app
 
-# Change directory to the cloned repository
-cd /app
-
-# Install Terraform
-sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+# Install Terraform & Vault
+sudo apt-get update
+sudo apt-get install -y gnupg software-properties-common ca-certificates
 
 apt-get install -y wget unzip jq
 
-wget -O- https://apt.releases.hashicorp.com/gpg | \
-    gpg --dearmor | \
-    sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-
-gpg --no-default-keyring \
-    --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg \
-    --fingerprint
-
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
-    https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-    sudo tee /etc/apt/sources.list.d/hashicorp.list
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt update
-
-sudo apt-get install -y terraform=1.5.3-1
+sudo apt-get install -y terraform=1.5.3-1 vault=1.14.0-1
+chown -R root:root /usr/bin/vault 
 
 # Install AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -44,3 +41,35 @@ sudo ./aws/install
 aws configure set region us-east-2 --profile default
 
 rm -rf awscliv2.zip aws
+
+# Install Docker
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
+
+# Create the terraform.tf file
+cat > ${CODE_HOME}/terraform.tf <<EOF
+terraform {
+  cloud {
+    organization = "<your-org>"
+
+    workspaces {
+      name = "<your-workspace-name>"
+    }
+  }
+}
+EOF
+
+##################################################
+# We want these permanently during the session.
+# CODE_HOME is where our app code lives
+##################################################
+echo "export CODE_HOME=${CODE_HOME}" >> /root/.bashrc 

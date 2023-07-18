@@ -20,8 +20,7 @@ tabs:
   hostname: cloud-client
   path: /
   port: 80
-difficulty: basic
-timelimit: 3600
+difficulty: ""
 ---
 
 👋 Getting Started
@@ -31,36 +30,52 @@ Use the web-based VS Code IDE to your advantage and bring up the integrated term
 
 **ctrl + `**
 
+## HCP Vault Access
+
+Let's hook up the Vault CLI with your provided HCP Vault endpoint and namespace:
+```
+export VAULT_ADDR=<hcp-vault-endpoint-here>
+export VAULT_NAMESPACE=admin/<your-namespace-here>
+```
+
+Execute this for the upcoming challenges:
+```
+# Save to bash profile
+echo "export VAULT_ADDR=${VAULT_ADDR}" >> /root/.bashrc
+echo "export VAULT_NAMESPACE=${VAULT_NAMESPACE}" >> /root/.bashrc
+```
+
+Login to your HCP Vault namespace using a personal GitHub API token:
+```
+vault login -method github
+```
+
+You should now be able to list your kv secrets using this command:
+```
+vault kv get -format=json kv/terraform
+```
+
+## Terraform Cloud Access
+
 Next, connect to your VS Code workspace with a  Terraform Cloud workspace. In order to authenticate with Terraform Cloud, you will need an API team token. Your facilitator has supplied this token in your respective HCP Vault namespace. Please verify that you have access to:
 
 - A Terraform Cloud organization and project (UI)
 - An HCP Vault namespace (UI)
 
-Once ready, create a new file named `main.tf` and configure the Terraform CLI remote backend:
+Once ready, open the file `terraform.tf` and replace the organization and workspace name values accordingly.
+
+Now that we have the remote backend defined, copy & paste the Terraform team token value and use it in the login prompt.
 
 ```
-terraform {
-  cloud {
-    organization = "<your-org>"
+echo $(vault kv get -format=json kv/terraform | jq -r .data.data.team_token)
 
-    workspaces {
-      name = "<your-workspace-name>"
-    }
-  }
-}
-```
-Replace the organization and workspace name values accordingly.
-
-Now that we have the remote backend defined, copy & paste the `team_token` value in `kv/terraform` from your HCP Vault namespace and use it in the login prompt.
-
-```
-cd /app && terraform login
+terraform login
 ```
 
 Assuming you're successfully authenticated, initialize the repository with:
 
 ```
-terraform init
+cd /app && terraform init
 ```
 
-To complete this challenge, press **Check**.
+Press **Check** to move on to the next challenge.

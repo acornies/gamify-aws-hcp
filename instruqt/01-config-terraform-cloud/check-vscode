@@ -1,2 +1,13 @@
-#!/bin/bash
+#!/bin/bash -l
+
+set -euxo pipefail
+
+# check vault connetion
+vault kv get -format=json kv/terraform
+
+# check terraform connection and state
+cd $CODE_HOME
+terraform init
 terraform state list
+
+exit 0

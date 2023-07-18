@@ -3,7 +3,7 @@ id: gnmls6ynla9i
 title: Gamify AWS and HCP
 teaser: A gamified workshop for accounts using AWS and HCP services. Use this track
   to generate excitement for an account with relevant architecture.
-description: "This track is designed to be used in a half day event where participants
+description: "This track is designed to be used in a full day event where participants
   compete by completing the challenges in a 3 hour time limit.\n\n### The challenges\n-
   \ ☁️ Hook up your Terraform code/workspace to Terraform Cloud (team token provided)\n-
   \ \U0001F433 Build and push a Docker container for the X application to AWS ECR
@@ -31,9 +31,11 @@ tags:
 owner: hashicorp
 developers:
 - andrew.cornies@hashicorp.com
+maintenance: true
+show_timer: true
 timelimit: 10800
 lab_config:
   overlay: false
   width: 33
   position: right
-checksum: "16581664588456641015"
+checksum: "14161360103797152394"
