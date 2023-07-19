@@ -1,10 +1,8 @@
 participants = {
   "super-awesome-team" = {
-    email = "acornies@gmail.com"
   team = "super-awesome" },
-  "aviva-example" = {
-    email = "acornies@gmail.com"
-  team = "aviva-example" },
+  # "another-example" = {
+  # team = "another-example" },
 }
 
 event_github_organization = "tmx-gameday-aug16"
