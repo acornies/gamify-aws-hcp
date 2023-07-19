@@ -132,11 +132,11 @@ resource "tfe_team_access" "challenges" {
 }
 
 # Add the team caption email to the TFC organization
-resource "tfe_organization_membership" "participants" {
-  for_each     = var.participants
-  organization = data.tfe_organization.event_org.name
-  email        = each.value.email
-}
+# resource "tfe_organization_membership" "participants" {
+#   for_each     = var.participants
+#   organization = data.tfe_organization.event_org.name
+#   email        = each.value.email
+# }
 
 # Create a TFC team token per team
 resource "tfe_team_token" "participants" {
