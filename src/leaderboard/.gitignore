@@ -1,0 +1,4 @@
+# Ignore git mod vendor files
+vendor/
+# Ignore the binary
+gamify-leaderboard
