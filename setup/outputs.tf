@@ -18,3 +18,7 @@ output "aws_gamify_sqs_arn" {
 output "aws_gamify_sqs_url" {
   value = aws_sqs_queue.gamify.url
 }
+
+output "aws_gamify_leaderboard_ecr_repo" {
+  value = aws_ecr_repository.gamify_leaderboard.repository_url
+}

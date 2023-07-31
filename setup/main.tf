@@ -208,7 +208,13 @@ data "aws_iam_policy_document" "gamify_queue_access" {
   }
 }
 
+# Set the SQS queue policy
 resource "aws_sqs_queue_policy" "gamify" {
   queue_url = aws_sqs_queue.gamify.id
   policy    = data.aws_iam_policy_document.gamify_queue_access.json
+}
+
+# Create image respoitory for leaderboard app
+resource "aws_ecr_repository" "gamify_leaderboard" {
+  name = "gamify-leaderboard"
 }
