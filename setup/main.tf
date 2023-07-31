@@ -9,18 +9,27 @@ terraform {
       version = "0.66.0"
     }
     vault = {
-      source = "hashicorp/vault"
-    version = "3.18.0" }
+      source  = "hashicorp/vault"
+      version = "3.18.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.10.0"
+    }
   }
 }
 
 provider "tfe" {
 }
 
+provider "aws" {
+  region = var.region
+}
+
 resource "hcp_hvn" "event_cluster" {
   hvn_id         = "${var.event_name}-hvn"
   cloud_provider = "aws"
-  region         = var.hcp_vault_region
+  region         = var.region
   cidr_block     = var.hcp_vault_cidr_block
 }
 
@@ -107,7 +116,7 @@ resource "tfe_team" "participants" {
   for_each     = var.participants
   organization = data.tfe_organization.event_org.name
   name         = each.value.team
-  visibility   = "organization"
+  visibility   = "secret"
   organization_access {
     manage_vcs_settings = true
     manage_modules      = true
@@ -175,4 +184,31 @@ resource "tfe_variable" "hcp_vault_namespace" {
   value        = each.key
   category     = "env"
   workspace_id = tfe_workspace.challenges[each.key].id
+}
+
+# AWS SQS queue
+resource "aws_sqs_queue" "gamify" {
+  name = "gamify"
+  tags = {
+    Environment = var.event_name
+  }
+}
+
+# Grant anonymous receive access for this event
+data "aws_iam_policy_document" "gamify_queue_access" {
+  statement {
+    sid    = "Gamify_AnonymousAccess_ReceiveMessage"
+    effect = "Allow"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions   = ["sqs:ReceiveMessage"]
+    resources = [aws_sqs_queue.gamify.arn]
+  }
+}
+
+resource "aws_sqs_queue_policy" "gamify" {
+  queue_url = aws_sqs_queue.gamify.id
+  policy    = data.aws_iam_policy_document.gamify_queue_access.json
 }

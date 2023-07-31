@@ -1,3 +1,7 @@
+variable "region" {
+  default = "us-east-2"
+}
+
 variable "participants" {
   type = map(any)
 }
@@ -16,10 +20,6 @@ variable "event_hcp_project_id" {
 
 variable "event_github_organization" {
   # populate the GitHub org name for the event with with .tfvars
-}
-
-variable "hcp_vault_region" {
-  default = "us-east-2"
 }
 
 variable "hcp_vault_tier" {

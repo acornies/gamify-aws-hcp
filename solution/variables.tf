@@ -19,3 +19,8 @@ variable "hcp_vault_namespace" {
 variable "db_instance_type" {
   default = "db.t3.micro"
 }
+
+# SQS ARN provided by the facilitator
+variable "sqs_arn" {
+  default = "arn:aws:sqs:us-east-2:395920473437:gamify"
+}

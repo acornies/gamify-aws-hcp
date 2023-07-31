@@ -10,3 +10,11 @@ output "hcp_vault_admin_token" {
   sensitive = true
   value     = hcp_vault_cluster_admin_token.event_cluster.token
 }
+
+output "aws_gamify_sqs_arn" {
+  value = aws_sqs_queue.gamify.arn
+}
+
+output "aws_gamify_sqs_url" {
+  value = aws_sqs_queue.gamify.url
+}

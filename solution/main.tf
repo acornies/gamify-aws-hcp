@@ -78,6 +78,12 @@ resource "aws_lambda_function_url" "gamify" {
   authorization_type = "NONE"
 }
 
+# SQS Lambda event source mapping
+resource "aws_lambda_event_source_mapping" "example" {
+  event_source_arn = var.sqs_arn
+  function_name    = aws_lambda_function.function.arn
+}
+
 resource "random_password" "password" {
   length  = 32
   special = false
