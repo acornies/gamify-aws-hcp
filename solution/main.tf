@@ -8,9 +8,9 @@ resource "aws_default_vpc" "default" {
 }
 
 # Particiants may do this in the UI prior to running Docker build/push
-# resource "aws_ecr_repository" "gamify" {
-#   name = "gamify"
-# }
+resource "aws_ecr_repository" "gamify" {
+  name = "gamify"
+}
 
 resource "aws_iam_policy" "gamify" {
   name = "gamify-lambda-function-policy"
@@ -68,21 +68,49 @@ resource "aws_lambda_function" "function" {
       VAULT_AUTH_PROVIDER  = "aws",
       VAULT_SECRET_PATH_DB = "database/creds/lambda-function",
       VAULT_SECRET_FILE_DB = "/tmp/vault_secret.json",
-      DATABASE_URL         = aws_db_instance.main.address
+      DATABASE_ADDR        = aws_db_instance.main.endpoint
+      DATABASE_NAME        = aws_db_instance.main.db_name
     }
   }
 }
 
-resource "aws_lambda_function_url" "gamify" {
-  function_name      = aws_lambda_function.function.function_name
-  authorization_type = "NONE"
+# resource "aws_lambda_function_url" "gamify" {
+#   function_name      = aws_lambda_function.function.function_name
+#   authorization_type = "NONE"
+# }
+
+resource "aws_sqs_queue" "gamify" {
+  name = "gamify"
+  tags = {
+    Environment = "gamify"
+  }
+}
+
+# Grant anonymous access for this event
+data "aws_iam_policy_document" "gamify_queue_access" {
+  statement {
+    sid    = "Gamify_AnonymousAccess_ReceiveMessage"
+    effect = "Allow"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions   = ["sqs:*"]
+    resources = [aws_sqs_queue.gamify.arn]
+  }
+}
+
+# Set the SQS queue policy
+resource "aws_sqs_queue_policy" "gamify" {
+  queue_url = aws_sqs_queue.gamify.id
+  policy    = data.aws_iam_policy_document.gamify_queue_access.json
 }
 
 # SQS Lambda event source mapping
-resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn = var.sqs_arn
-  function_name    = aws_lambda_function.function.arn
-}
+# resource "aws_lambda_event_source_mapping" "gamify" {
+#   event_source_arn = aws_sqs_queue.gamify.arn
+#   function_name    = aws_lambda_function.function.arn
+# }
 
 resource "random_password" "password" {
   length  = 32
