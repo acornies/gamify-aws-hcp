@@ -74,7 +74,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			return err
 		}
 
-		// save score to database
+		// Save points to scores table in database
 		sqlStatement := `
 INSERT INTO scores (team_id, score_value, score_type, score_date)
 VALUES ($1, $2, $3, $4)`

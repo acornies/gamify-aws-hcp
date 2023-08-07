@@ -12,4 +12,4 @@ unzip vault-lambda-extension.zip -d ./
 rm -rf vault-lambda-extension.zip
 
 # Build the Docker image
-docker build --build-arg="ARCH=${ARCH}" -t gamify-func-leaderboard-rec:latest .
+docker build --build-arg="ARCH=${ARCH}" -t gamify-func-leaderboard-http:latest .
