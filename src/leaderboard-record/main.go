@@ -78,7 +78,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		sqlStatement := `
 INSERT INTO scores (team_id, score_value, score_type, score_date)
 VALUES ($1, $2, $3, $4)`
-		_, err = db.Exec(sqlStatement, event.AccountID, event.Points, "registration", time.Now())
+		_, err = db.ExecContext(ctx, sqlStatement, event.AccountID, event.Points, "registration", time.Now())
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,6 @@ VALUES ($1, $2, $3, $4)`
 		fmt.Printf("Successfully recorded leaderboard score event for account: %s\n", event.AccountID)
 	}
 
-	defer db.Close()
 	return nil
 }
 

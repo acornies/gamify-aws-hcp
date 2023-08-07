@@ -59,10 +59,31 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 
 	fmt.Println("Successfully connected to the database")
 
-	// TODO: Get the scores from the database
+	// Get the scores from the database
+	rows, err := db.QueryContext(ctx, "SELECT team_id, SUM(score_value) FROM scores GROUP BY team_id")
+	if err != nil {
+		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
+	}
+	defer rows.Close()
 
-	defer db.Close()
-	return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusOK}, nil
+	// Build a map of teamID -> score
+	scores := make(map[string]int)
+	for rows.Next() {
+		var teamID string
+		var score int
+		if err := rows.Scan(&teamID, &score); err != nil {
+			return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
+		}
+		scores[teamID] = score
+	}
+
+	// JSON encode the scores
+	scoresJSON, err := json.Marshal(scores)
+	if err != nil {
+		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
+	}
+
+	return events.LambdaFunctionURLResponse{Body: string(scoresJSON), StatusCode: http.StatusOK}, nil
 }
 
 func main() {
