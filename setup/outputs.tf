@@ -38,3 +38,12 @@ output "aws_leaderboard_rec_ecr_repo" {
 output "aws_leaderboard_http_function_url" {
   value = aws_lambda_function_url.leaderboard_http.function_url
 }
+
+output "aws_leaderboard_rds_instance_password" {
+  value     = random_password.password.result
+  sensitive = true
+}
+
+output "aws_leaderboard_rds_instance_endpoint" {
+  value = aws_db_instance.leaderboard.endpoint
+}

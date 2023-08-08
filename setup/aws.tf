@@ -75,19 +75,20 @@ resource "aws_lambda_function" "leaderboard_http" {
   function_name = "gamify-leaderboard-http"
   description   = "The faciliator http function for the leaderboard"
   role          = aws_iam_role.leaderboard_http.arn
-  image_uri     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${aws_ecr_repository.leaderboard_http.name}:latest"
+  image_uri     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${aws_ecr_repository.leaderboard_http.name}:v0.1.0"
   package_type  = "Image"
+  architectures = ["arm64"]
 
   environment {
     variables = {
       VAULT_ADDR           = hcp_vault_cluster.event_cluster.vault_public_endpoint_url,
-      VAULT_NAMESPACE      = vault_namespace.facilitator.path_fq,
+      VAULT_NAMESPACE      = "admin/${vault_namespace.facilitator.path_fq}",
       VAULT_AUTH_ROLE      = aws_iam_role.leaderboard_http.name,
       VAULT_AUTH_PROVIDER  = "aws",
       VAULT_SECRET_PATH_DB = "database/creds/leaderboard-http",
       VAULT_SECRET_FILE_DB = "/tmp/vault_secret.json",
       # the database name needs to be appended to the endpoint
-      DATABASE_ADDR        = "${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}" 
+      DATABASE_ADDR = "${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
     }
   }
 }

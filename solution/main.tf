@@ -74,11 +74,6 @@ resource "aws_lambda_function" "function" {
   }
 }
 
-# resource "aws_lambda_function_url" "gamify" {
-#   function_name      = aws_lambda_function.function.function_name
-#   authorization_type = "NONE"
-# }
-
 resource "aws_sqs_queue" "gamify" {
   name = "gamify"
   tags = {

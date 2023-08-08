@@ -55,7 +55,7 @@ provider "vault" {
 
 # Create namespace for the facilitator
 resource "vault_namespace" "facilitator" {
-  path     = "${var.event_name}-facilitator"
+  path = "${var.event_name}-facilitator"
 }
 
 # Create the namespaces from the map defined in variables.tf
@@ -192,14 +192,14 @@ resource "tfe_variable" "hcp_vault_namespace" {
 # Add aws auth to the vault facilitator namespace
 resource "vault_auth_backend" "aws" {
   namespace = vault_namespace.facilitator.path_fq
-  type = "aws"
-  path = "aws"
+  type      = "aws"
+  path      = "aws"
 }
 
 resource "vault_policy" "leaderboard" {
   namespace = vault_namespace.facilitator.path_fq
-  name = "leaderboard-http"
-  policy = <<EOT
+  name      = "leaderboard-http"
+  policy    = <<EOT
 path "database/creds/${vault_database_secret_backend_role.leaderboard_http.name}" {
     capabilities = ["read"]
 }
@@ -208,7 +208,7 @@ EOT
 
 resource "vault_database_secrets_mount" "leaderboard" {
   namespace = vault_namespace.facilitator.path_fq
-  path = "database"
+  path      = "database"
   postgresql {
     name              = "postgres"
     username          = aws_db_instance.leaderboard.username
@@ -233,11 +233,21 @@ resource "vault_database_secrets_mount" "leaderboard" {
 
 resource "vault_database_secret_backend_role" "leaderboard_http" {
   namespace = vault_namespace.facilitator.path_fq
-  name    = aws_iam_role.leaderboard_http.name
-  backend = vault_database_secrets_mount.leaderboard.path
-  db_name = "postgres"
+  name      = aws_iam_role.leaderboard_http.name
+  backend   = vault_database_secrets_mount.leaderboard.path
+  db_name   = "postgres"
   creation_statements = [
     "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
     "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
   ]
+}
+
+resource "vault_aws_auth_backend_role" "leaderboard_http" {
+  backend                  = vault_auth_backend.aws.path
+  namespace                = vault_namespace.facilitator.path_fq
+  role                     = aws_iam_role.leaderboard_http.name
+  auth_type                = "iam"
+  bound_iam_principal_arns = ["${aws_iam_role.leaderboard_http.arn}"]
+  token_ttl                = 300
+  token_policies           = ["default", "${vault_policy.leaderboard.name}"]
 }

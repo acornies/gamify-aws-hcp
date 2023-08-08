@@ -19,7 +19,3 @@ output "rds_instance_password" {
 output "aws_iam_lambda_role_arn" {
   value = aws_iam_role.gamify.arn
 }
-
-output "lamdba_url" {
-  value = aws_lambda_function_url.gamify.function_url
-}

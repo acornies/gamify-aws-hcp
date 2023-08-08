@@ -83,7 +83,10 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
 	}
 
-	return events.LambdaFunctionURLResponse{Body: string(scoresJSON), StatusCode: http.StatusOK}, nil
+	return events.LambdaFunctionURLResponse{
+		Body:       string(scoresJSON),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		StatusCode: http.StatusOK}, nil
 }
 
 func main() {
