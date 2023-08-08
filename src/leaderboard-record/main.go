@@ -86,6 +86,8 @@ VALUES ($1, $2, $3, $4)`
 		fmt.Printf("Successfully recorded leaderboard score event for account: %s\n", event.AccountID)
 	}
 
+	defer db.Close()
+
 	return nil
 }
 
