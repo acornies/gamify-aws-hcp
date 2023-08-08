@@ -11,14 +11,30 @@ output "hcp_vault_admin_token" {
   value     = hcp_vault_cluster_admin_token.event_cluster.token
 }
 
-output "aws_gamify_sqs_arn" {
-  value = aws_sqs_queue.gamify.arn
+output "aws_participant_sqs_arn" {
+  value = aws_sqs_queue.participant.arn
 }
 
-output "aws_gamify_sqs_url" {
-  value = aws_sqs_queue.gamify.url
+output "aws_leaderboard_sqs_arn" {
+  value = aws_sqs_queue.leaderboard.arn
 }
 
-output "aws_gamify_leaderboard_ecr_repo" {
-  value = aws_ecr_repository.gamify_leaderboard.repository_url
+output "aws_participant_sqs_url" {
+  value = aws_sqs_queue.participant.url
+}
+
+output "aws_leaderboard_sqs_url" {
+  value = aws_sqs_queue.leaderboard.url
+}
+
+output "aws_leaderboard_http_ecr_repo" {
+  value = aws_ecr_repository.leaderboard_http.repository_url
+}
+
+output "aws_leaderboard_rec_ecr_repo" {
+  value = aws_ecr_repository.leaderboard_rec.repository_url
+}
+
+output "aws_leaderboard_http_function_url" {
+  value = aws_lambda_function_url.leaderboard_http.function_url
 }

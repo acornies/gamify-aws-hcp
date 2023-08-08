@@ -22,10 +22,6 @@ terraform {
 provider "tfe" {
 }
 
-provider "aws" {
-  region = var.region
-}
-
 resource "hcp_hvn" "event_cluster" {
   hvn_id         = "${var.event_name}-hvn"
   cloud_provider = "aws"
@@ -55,6 +51,11 @@ provider "vault" {
   namespace = "admin"
   address   = hcp_vault_cluster.event_cluster.vault_public_endpoint_url
   token     = hcp_vault_cluster_admin_token.event_cluster.token
+}
+
+# Create namespace for the facilitator
+resource "vault_namespace" "facilitator" {
+  path     = "${var.event_name}-facilitator"
 }
 
 # Create the namespaces from the map defined in variables.tf
@@ -186,35 +187,57 @@ resource "tfe_variable" "hcp_vault_namespace" {
   workspace_id = tfe_workspace.challenges[each.key].id
 }
 
-# AWS SQS queue
-resource "aws_sqs_queue" "gamify" {
-  name = "gamify"
-  tags = {
-    Environment = var.event_name
+# Facilitator Vault Resources
+# ---------------------
+# Add aws auth to the vault facilitator namespace
+resource "vault_auth_backend" "aws" {
+  namespace = vault_namespace.facilitator.path_fq
+  type = "aws"
+  path = "aws"
+}
+
+resource "vault_policy" "leaderboard" {
+  namespace = vault_namespace.facilitator.path_fq
+  name = "leaderboard-http"
+  policy = <<EOT
+path "database/creds/${vault_database_secret_backend_role.leaderboard_http.name}" {
+    capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_database_secrets_mount" "leaderboard" {
+  namespace = vault_namespace.facilitator.path_fq
+  path = "database"
+  postgresql {
+    name              = "postgres"
+    username          = aws_db_instance.leaderboard.username
+    password          = random_password.password.result
+    connection_url    = "postgres://{{username}}:{{password}}@${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
+    verify_connection = true
+    allowed_roles = [
+      "leaderboard-*",
+    ]
   }
 }
 
-# Grant anonymous receive access for this event
-data "aws_iam_policy_document" "gamify_queue_access" {
-  statement {
-    sid    = "Gamify_AnonymousAccess_ReceiveMessage"
-    effect = "Allow"
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-    actions   = ["sqs:ReceiveMessage"]
-    resources = [aws_sqs_queue.gamify.arn]
-  }
-}
+# Alternative Vault CLI usage after IAM user creds are created
+# vault write auth/aws/config/client \
+#   access_key= \
+#   secret_key=
+# resource "vault_aws_auth_backend_client" "gamify" {
+#   backend    = vault_auth_backend.aws.path
+#   access_key = ""
+#   secret_key = ""
+# }
 
-# Set the SQS queue policy
-resource "aws_sqs_queue_policy" "gamify" {
-  queue_url = aws_sqs_queue.gamify.id
-  policy    = data.aws_iam_policy_document.gamify_queue_access.json
-}
-
-# Create image respoitory for leaderboard app
-resource "aws_ecr_repository" "gamify_leaderboard" {
-  name = "gamify-leaderboard"
+resource "vault_database_secret_backend_role" "leaderboard_http" {
+  namespace = vault_namespace.facilitator.path_fq
+  name    = aws_iam_role.leaderboard_http.name
+  backend = vault_database_secrets_mount.leaderboard.path
+  db_name = "postgres"
+  creation_statements = [
+    "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+  ]
 }
