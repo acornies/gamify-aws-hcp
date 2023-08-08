@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-  <link rel="stylesheet" href="/demo/static/demo.css">
   <title>Gamify AWS and HCP Leaderboard</title>
 </head>
 
@@ -13,45 +12,50 @@
 
   <div class="container-fluid">
     <h1>Gamify AWS and HCP Leaderboard</h1>
-    <p class="lead">TODO</p>
+    <div class="form-group">
+      <input type="text" class="form-control" id="inputLeaderboard" placeholder="Enter function URL">
+    </div>
     <div>
         <canvas id="myChart"></canvas>
-      </div>
+    </div>
       
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      
-      <script>
-        const ctx = document.getElementById('myChart');
-      
-        chart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-            datasets: [{
-              label: '# of Votes',
-              data: [12, 19, 3, 5, 2, 3],
-              borderWidth: 1
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+      const ctx = document.getElementById('myChart');
+    
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: '# of Points',
+            data: [],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
             }
           }
-        });
-        
-        setInterval(function(){
-            chart.data.datasets[0].data[5] = 30;
-            chart.data.labels[5] = "Newly Added";
+        }
+      });
+      
+      setInterval(function() {
+        leaderboardUrl = document.getElementById('inputLeaderboard').value;
+        fetch(leaderboardUrl)
+          .then(response => response.json())
+          .then(response => {
+            chart.data.datasets[0].data = response;
             chart.update();
-        }, 3000);
-      </script>
-       
-  </div>
-  <script src="https://unpkg.com/vue@next"></script>
-  <!-- <script src="/demo/static/index.js"></script> -->
+          })
+          .catch(err => {
+            console.log(err.message || err);
+          })
+      }, 10000);
+    </script>
 </body>
 
 </html>

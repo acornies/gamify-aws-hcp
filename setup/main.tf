@@ -240,6 +240,8 @@ resource "vault_database_secret_backend_role" "leaderboard_http" {
     "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
     "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
   ]
+  default_ttl = 21600
+  max_ttl     = 86400
 }
 
 resource "vault_aws_auth_backend_role" "leaderboard_http" {

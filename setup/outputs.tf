@@ -47,3 +47,7 @@ output "aws_leaderboard_rds_instance_password" {
 output "aws_leaderboard_rds_instance_endpoint" {
   value = aws_db_instance.leaderboard.endpoint
 }
+
+output "aws_leaderboard_frontend_url" {
+  value = aws_s3_bucket_website_configuration.leaderboard.website_endpoint
+}
