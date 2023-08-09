@@ -68,8 +68,7 @@ resource "aws_lambda_function" "function" {
       VAULT_AUTH_PROVIDER  = "aws",
       VAULT_SECRET_PATH_DB = "database/creds/lambda-function",
       VAULT_SECRET_FILE_DB = "/tmp/vault_secret.json",
-      DATABASE_ADDR        = aws_db_instance.main.endpoint
-      DATABASE_NAME        = aws_db_instance.main.db_name
+      DATABASE_ADDR        = "${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}"
     }
   }
 }

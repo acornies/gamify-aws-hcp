@@ -1,18 +1,18 @@
 # Gamify AWS and HCP
 
-A gamified workshop for accounts using AWS and HCP services. Use this track to generate excitement for an account with relevant architecture.
+This repo is designed for a facilitator of a "GameDay" event. The facilitator will use this repository to setup the components needed to run the event. 
 
-## Challenges
+Use this event structure to generate excitement for an account with relevant architecture and ultimately drive HCP consumption with AWS. 
 
-- ☁️ Hook up your Terraform code/workspace to Terraform Cloud (team token provided)
-- 🐳 Build and push a Docker container for the Lambda function to AWS ECR (source code provided)
-- 📝 Use Terraform to provision an AWS Lambda function, an AWS RDS instance to receive messages from SQS and store the data
-- 🚀 Use Terraform to configure your HCP Vault namespace for the Lambda Vault extension (namespace provided)
-- 🔒 Secure the Lambda function's database connection using HashiCorp Vault
+See the [participant repository](https://github.com/acornies/gamify-aws-hcp-participant) for the challenge details.
+
+## Event Architecture
+
+![Gamify event architecture](./doc/gamify_arc_v2.jpg)
 
 ## Prerequisites
 
-This track is designed to be used in a full day event where participants compete by completing the challenges in a 3-4 hour time limit. The following is a list of resources needed before the start of the event:
+The following is a list of resources needed before the start of the event:
 
 ### Facilitators SE/SAs
 
@@ -21,6 +21,8 @@ This track is designed to be used in a full day event where participants compete
 - An HCP account (@hashicorp.com email address)
 - A Terraform Cloud Plus/Business org (#team-se-trial-rqsts Slack channel)
 - A new GitHub organization for the event
+  - A list of teams and attendees
+- An AWS account vended by AWS Workshop Studio
 
 ### Participants
 
@@ -32,11 +34,12 @@ This track is designed to be used in a full day event where participants compete
   - Namespace (team or participant name)
 - An AWS account vended by AWS Workshop Studio
 
-Personal GitHub accounts are needed to add participants to an event organization team. It is recommended to create a new GitHub org specific to the Gamify event.
+Personal GitHub accounts are needed to add participants to an event organization team. It is recommended to create a new GitHub org specific to the GameDay event.
 
-### Contributors
+## Contributors
 
 See the [src](./src/) directory for source code of the following components:
 
-- The leaderboard service
-- Example SQS message to populate the AWS SQS queue
+- The leaderboard HTTP service (Lambda HTTP function)
+- The leaderboard record service (Lambda SQS function)
+- The leaderboard HTML frontend (leaderboard graph)
