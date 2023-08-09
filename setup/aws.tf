@@ -318,7 +318,7 @@ resource "vault_aws_auth_backend_role" "leaderboard_http" {
   role                     = aws_iam_role.leaderboard_http.name
   auth_type                = "iam"
   bound_iam_principal_arns = ["${aws_iam_role.leaderboard_http.arn}"]
-  token_ttl                = 300
+  token_ttl                = 21600
   token_policies           = ["default", "${vault_policy.leaderboard.name}"]
 }
 
@@ -328,7 +328,7 @@ resource "vault_aws_auth_backend_role" "leaderboard_rec" {
   role                     = aws_iam_role.leaderboard_rec.name
   auth_type                = "iam"
   bound_iam_principal_arns = ["${aws_iam_role.leaderboard_rec.arn}"]
-  token_ttl                = 300
+  token_ttl                = 21600
   token_policies           = ["default", "${vault_policy.leaderboard_rec.name}"]
 }
 

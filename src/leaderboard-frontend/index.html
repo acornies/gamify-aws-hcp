@@ -22,6 +22,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
+
+      // Load the chart from the function URL
+      window.addEventListener('load', function() {
+        leaderboardUrl = localStorage.getItem('leaderboardUrl');
+        document.getElementById('inputLeaderboard').value = leaderboardUrl;
+
+        fetch(leaderboardUrl)
+          .then(response => response.json())
+          .then(response => {
+            chart.data.datasets[0].data = response;
+            chart.update();
+          })
+          .catch(err => {
+            console.log(err.message || err);
+          })
+      });
+
       const ctx = document.getElementById('myChart');
     
       chart = new Chart(ctx, {
@@ -35,6 +52,12 @@
           }]
         },
         options: {
+          responsive: true,
+          plugins: {
+            colors: {
+              enabled: true
+            }
+          },
           scales: {
             y: {
               beginAtZero: true
@@ -42,9 +65,12 @@
           }
         }
       });
-      
+
       setInterval(function() {
         leaderboardUrl = document.getElementById('inputLeaderboard').value;
+
+        localStorage.setItem('leaderboardUrl', leaderboardUrl);
+
         fetch(leaderboardUrl)
           .then(response => response.json())
           .then(response => {

@@ -44,6 +44,10 @@ output "aws_leaderboard_rds_instance_password" {
   sensitive = true
 }
 
+output "aws_leaderboard_rds_instance_address" {
+  value = aws_db_instance.leaderboard.address
+}
+
 output "aws_leaderboard_rds_instance_endpoint" {
   value = aws_db_instance.leaderboard.endpoint
 }
