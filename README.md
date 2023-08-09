@@ -21,16 +21,6 @@ This track is designed to be used in a full day event where participants compete
 - An HCP account (@hashicorp.com email address)
 - A Terraform Cloud Plus/Business org (#team-se-trial-rqsts Slack channel)
 - A new GitHub organization for the event
-- An AWS account (provisioned by [Doormat](https://doormat.hashicorp.services/))
-
-### Event preparation
-
-Example SQS event publishing:
-
-```bash
-aws sqs send-message --queue-url https://sqs.us-east-2.amazonaws.com/395920473437/gamify --message-body "This is a Dreamcast 5 console registration" \
-  --delay-seconds 1 --message-attributes file://./src/json/send-message.json
-```
 
 ### Participants
 

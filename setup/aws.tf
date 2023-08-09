@@ -75,7 +75,7 @@ resource "aws_lambda_function" "leaderboard_http" {
   function_name = "gamify-leaderboard-http"
   description   = "The faciliator http function for the leaderboard"
   role          = aws_iam_role.leaderboard_http.arn
-  image_uri     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${aws_ecr_repository.leaderboard_http.name}:v0.1.0"
+  image_uri     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${aws_ecr_repository.leaderboard_http.name}:latest"
   package_type  = "Image"
   architectures = ["arm64"]
 
@@ -91,6 +91,34 @@ resource "aws_lambda_function" "leaderboard_http" {
       DATABASE_ADDR = "${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
     }
   }
+}
+
+resource "aws_lambda_function" "leaderboard_rec" {
+  function_name = "gamify-leaderboard-rec"
+  description   = "The faciliator record scores function for the leaderboard"
+  role          = aws_iam_role.leaderboard_rec.arn
+  image_uri     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${aws_ecr_repository.leaderboard_rec.name}:latest"
+  package_type  = "Image"
+  architectures = ["arm64"]
+
+  environment {
+    variables = {
+      VAULT_ADDR           = hcp_vault_cluster.event_cluster.vault_public_endpoint_url,
+      VAULT_NAMESPACE      = "admin/${vault_namespace.facilitator.path_fq}",
+      VAULT_AUTH_ROLE      = aws_iam_role.leaderboard_rec.name,
+      VAULT_AUTH_PROVIDER  = "aws",
+      VAULT_SECRET_PATH_DB = "database/creds/leaderboard-rec",
+      VAULT_SECRET_FILE_DB = "/tmp/vault_secret.json",
+      # the database name needs to be appended to the endpoint
+      DATABASE_ADDR = "${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
+    }
+  }
+}
+
+# SQS Lambda event source mapping
+resource "aws_lambda_event_source_mapping" "gamify" {
+  event_source_arn = aws_sqs_queue.leaderboard.arn
+  function_name    = aws_lambda_function.leaderboard_rec.arn
 }
 
 # The leaderboard http function needs an HTTP endpoint
@@ -172,8 +200,29 @@ resource "aws_iam_role" "leaderboard_http" {
   })
 }
 
+resource "aws_iam_role" "leaderboard_rec" {
+  name = "leaderboard-rec"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "leaderboard_http" {
   role       = aws_iam_role.leaderboard_http.name
+  policy_arn = aws_iam_policy.leaderboard.arn
+}
+
+resource "aws_iam_role_policy_attachment" "leaderboard_rec" {
+  role       = aws_iam_role.leaderboard_rec.name
   policy_arn = aws_iam_policy.leaderboard.arn
 }
 
