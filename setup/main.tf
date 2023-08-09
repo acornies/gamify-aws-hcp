@@ -58,7 +58,7 @@ resource "vault_namespace" "facilitator" {
   path = "${var.event_name}-facilitator"
 }
 
-# Create the namespaces from the map defined in variables.tf
+# Create the participant namespaces from the map defined in variables.tf
 resource "vault_namespace" "participants" {
   for_each = var.participants
   path     = each.key
@@ -185,105 +185,4 @@ resource "tfe_variable" "hcp_vault_namespace" {
   value        = each.key
   category     = "env"
   workspace_id = tfe_workspace.challenges[each.key].id
-}
-
-# Facilitator Vault Resources
-# ---------------------
-# Add aws auth to the vault facilitator namespace
-resource "vault_auth_backend" "aws" {
-  namespace = vault_namespace.facilitator.path_fq
-  type      = "aws"
-  path      = "aws"
-}
-
-resource "vault_policy" "leaderboard" {
-  namespace = vault_namespace.facilitator.path_fq
-  name      = "leaderboard-http"
-  policy    = <<EOT
-path "database/creds/${vault_database_secret_backend_role.leaderboard_http.name}" {
-    capabilities = ["read"]
-}
-EOT
-}
-
-resource "vault_policy" "leaderboard_rec" {
-  namespace = vault_namespace.facilitator.path_fq
-  name      = "leaderboard-rec"
-  policy    = <<EOT
-path "database/creds/${vault_database_secret_backend_role.leaderboard_rec.name}" {
-    capabilities = ["read"]
-}
-EOT
-}
-
-resource "vault_database_secrets_mount" "leaderboard" {
-  namespace = vault_namespace.facilitator.path_fq
-  path      = "database"
-  postgresql {
-    name              = "postgres"
-    username          = aws_db_instance.leaderboard.username
-    password          = random_password.password.result
-    connection_url    = "postgres://{{username}}:{{password}}@${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
-    verify_connection = true
-    allowed_roles = [
-      "leaderboard-*",
-    ]
-  }
-}
-
-# Alternative Vault CLI usage after IAM user creds are created
-# vault write auth/aws/config/client \
-#   access_key= \
-#   secret_key=
-# resource "vault_aws_auth_backend_client" "gamify" {
-#   backend    = vault_auth_backend.aws.path
-#   access_key = ""
-#   secret_key = ""
-# }
-
-resource "vault_database_secret_backend_role" "leaderboard_http" {
-  namespace = vault_namespace.facilitator.path_fq
-  name      = aws_iam_role.leaderboard_http.name
-  backend   = vault_database_secrets_mount.leaderboard.path
-  db_name   = "postgres"
-  creation_statements = [
-    "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
-    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
-  ]
-  default_ttl = 21600
-  max_ttl     = 86400
-}
-
-resource "vault_database_secret_backend_role" "leaderboard_rec" {
-  namespace = vault_namespace.facilitator.path_fq
-  name      = aws_iam_role.leaderboard_rec.name
-  backend   = vault_database_secrets_mount.leaderboard.path
-  db_name   = "postgres"
-  creation_statements = [
-    "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
-    "GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO \"{{name}}\";",
-    "GRANT INSERT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
-  ]
-  default_ttl = 21600
-  max_ttl     = 86400
-}
-
-resource "vault_aws_auth_backend_role" "leaderboard_http" {
-  backend                  = vault_auth_backend.aws.path
-  namespace                = vault_namespace.facilitator.path_fq
-  role                     = aws_iam_role.leaderboard_http.name
-  auth_type                = "iam"
-  bound_iam_principal_arns = ["${aws_iam_role.leaderboard_http.arn}"]
-  token_ttl                = 300
-  token_policies           = ["default", "${vault_policy.leaderboard.name}"]
-}
-
-resource "vault_aws_auth_backend_role" "leaderboard_rec" {
-  backend                  = vault_auth_backend.aws.path
-  namespace                = vault_namespace.facilitator.path_fq
-  role                     = aws_iam_role.leaderboard_rec.name
-  auth_type                = "iam"
-  bound_iam_principal_arns = ["${aws_iam_role.leaderboard_rec.arn}"]
-  token_ttl                = 300
-  token_policies           = ["default", "${vault_policy.leaderboard_rec.name}"]
 }

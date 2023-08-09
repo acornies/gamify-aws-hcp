@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "gamify_participant_access" {
       identifiers = ["*"]
     }
     actions   = ["sqs:*"]
-    resources = [aws_sqs_queue.participant.arn]
+    resources = ["*"]
   }
 }
 
@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "gamify_leaderboard_access" {
       identifiers = ["*"]
     }
     actions   = ["sqs:*"]
-    resources = [aws_sqs_queue.leaderboard.arn]
+    resources = ["*"]
   }
 }
 
@@ -136,6 +136,7 @@ resource "random_password" "password" {
   special = false
 }
 
+# Create the RDS instance for the leaderboard
 resource "aws_db_instance" "leaderboard" {
   allocated_storage      = 20
   storage_type           = "gp2"
@@ -155,7 +156,7 @@ resource "aws_security_group" "leaderboard_rds" {
   description = "Leaderboard postgres traffic"
   vpc_id      = aws_default_vpc.default.id
 
-  # Postgres traffic
+  # Postgres traffic (not recommended for production)
   ingress {
     from_port   = 5432
     to_port     = 5432
@@ -216,6 +217,7 @@ resource "aws_iam_role" "leaderboard_rec" {
   })
 }
 
+# attach the leaderboard IAM policy to the leaderboard function roles
 resource "aws_iam_role_policy_attachment" "leaderboard_http" {
   role       = aws_iam_role.leaderboard_http.name
   policy_arn = aws_iam_policy.leaderboard.arn
@@ -226,7 +228,111 @@ resource "aws_iam_role_policy_attachment" "leaderboard_rec" {
   policy_arn = aws_iam_policy.leaderboard.arn
 }
 
-# Static hosting resources
+# Facilitator AWS-dependent Vault Resources
+# ---------------------
+# Add aws auth to the vault facilitator namespace
+resource "vault_auth_backend" "aws" {
+  namespace = vault_namespace.facilitator.path_fq
+  type      = "aws"
+  path      = "aws"
+}
+
+resource "vault_policy" "leaderboard" {
+  namespace = vault_namespace.facilitator.path_fq
+  name      = "leaderboard-http"
+  policy    = <<EOT
+path "database/creds/${vault_database_secret_backend_role.leaderboard_http.name}" {
+    capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "leaderboard_rec" {
+  namespace = vault_namespace.facilitator.path_fq
+  name      = "leaderboard-rec"
+  policy    = <<EOT
+path "database/creds/${vault_database_secret_backend_role.leaderboard_rec.name}" {
+    capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_database_secrets_mount" "leaderboard" {
+  namespace = vault_namespace.facilitator.path_fq
+  path      = "database"
+  postgresql {
+    name              = "postgres"
+    username          = aws_db_instance.leaderboard.username
+    password          = random_password.password.result
+    connection_url    = "postgres://{{username}}:{{password}}@${aws_db_instance.leaderboard.endpoint}/${aws_db_instance.leaderboard.db_name}"
+    verify_connection = true
+    allowed_roles = [
+      "leaderboard-*",
+    ]
+  }
+}
+
+# Alternative Vault CLI usage after IAM user creds are created
+# Can also add these via the HCP Vault UI
+# vault write auth/aws/config/client \
+#   access_key= \
+#   secret_key=
+# resource "vault_aws_auth_backend_client" "gamify" {
+#   backend    = vault_auth_backend.aws.path
+#   access_key = ""
+#   secret_key = ""
+# }
+
+# The leaderboard-http func only needs read access to the database
+resource "vault_database_secret_backend_role" "leaderboard_http" {
+  namespace = vault_namespace.facilitator.path_fq
+  name      = aws_iam_role.leaderboard_http.name
+  backend   = vault_database_secrets_mount.leaderboard.path
+  db_name   = "postgres"
+  creation_statements = [
+    "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+  ]
+  default_ttl = 21600
+  max_ttl     = 86400
+}
+
+# The leaderboard-rec func needs write access to the database
+resource "vault_database_secret_backend_role" "leaderboard_rec" {
+  namespace = vault_namespace.facilitator.path_fq
+  name      = aws_iam_role.leaderboard_rec.name
+  backend   = vault_database_secrets_mount.leaderboard.path
+  db_name   = "postgres"
+  creation_statements = [
+    "CREATE ROLE \"{{name}}\" WITH LOGIN ENCRYPTED PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+    "GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO \"{{name}}\";",
+    "GRANT INSERT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+  ]
+  default_ttl = 21600
+  max_ttl     = 86400
+}
+
+resource "vault_aws_auth_backend_role" "leaderboard_http" {
+  backend                  = vault_auth_backend.aws.path
+  namespace                = vault_namespace.facilitator.path_fq
+  role                     = aws_iam_role.leaderboard_http.name
+  auth_type                = "iam"
+  bound_iam_principal_arns = ["${aws_iam_role.leaderboard_http.arn}"]
+  token_ttl                = 300
+  token_policies           = ["default", "${vault_policy.leaderboard.name}"]
+}
+
+resource "vault_aws_auth_backend_role" "leaderboard_rec" {
+  backend                  = vault_auth_backend.aws.path
+  namespace                = vault_namespace.facilitator.path_fq
+  role                     = aws_iam_role.leaderboard_rec.name
+  auth_type                = "iam"
+  bound_iam_principal_arns = ["${aws_iam_role.leaderboard_rec.arn}"]
+  token_ttl                = 300
+  token_policies           = ["default", "${vault_policy.leaderboard_rec.name}"]
+}
+
+# Static hosting resources ofr frontend
 # ------------------------------
 resource "aws_s3_bucket" "leaderboard" {
   bucket = "leaderboard-${var.event_name}"
