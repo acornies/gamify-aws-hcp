@@ -1,8 +1,18 @@
 participants = {
   "super-awesome-team" = {
   team = "super-awesome" },
-  # "another-example" = {
-  # team = "another-example" },
+  "bit-lords-challenge" = {
+  team = "bit-lords" },
+  "bootstrap-trojans-challenge" = {
+  team = "bootstrap-trojans" },
+  "byte-dogs-challange" = {
+  team = "byte-dogs" },
+  "debug-thugs-challenge" = {
+  team = "debug-thugs" },
+  "hugs-for-bugs-challenge" = {
+  team = "hugs-for-bugs" },
+  "reboot-rebels-challenge" = {
+  team = "reboot-rebels" },
 }
 
 event_github_organization = "tmx-gameday-aug16"
