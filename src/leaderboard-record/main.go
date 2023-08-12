@@ -29,6 +29,9 @@ type LeaderboardEvent struct {
 
 func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
 	fmt.Println("Started processing event, secrets injected")
 
 	// Check for required env vars env vars

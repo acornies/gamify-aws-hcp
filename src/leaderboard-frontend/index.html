@@ -23,6 +23,17 @@
     
     <script>
 
+      // Example map new team label to account id
+      // TODO: Create UI elements to populate this map
+      const teamMap = {
+        '125900228299': 'Bit Lords',
+        '417385266434': 'Byte Dogs',
+        '470059844023': 'Hugs for Bugs',
+        '818834411792': 'Bootstrap Trojans',
+        '0': 'Reboot Rebels',
+        '1': 'Debug Thugs',
+      };
+
       // Load the chart from the function URL
       window.addEventListener('load', function() {
         leaderboardUrl = localStorage.getItem('leaderboardUrl');
@@ -31,7 +42,8 @@
         fetch(leaderboardUrl)
           .then(response => response.json())
           .then(response => {
-            chart.data.datasets[0].data = response;
+            newData = replaceKeys(response, teamMap)
+            chart.data.datasets[0].data = newData;
             chart.update();
           })
           .catch(err => {
@@ -44,14 +56,16 @@
       chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: [],
           datasets: [{
-            label: '# of Points',
+            label: '# of points',
             data: [],
             borderWidth: 1
           }]
         },
         options: {
+          layout: {
+            padding: 20
+          },
           responsive: true,
           plugins: {
             colors: {
@@ -66,6 +80,7 @@
         }
       });
 
+      // Update the chart every 10 seconds
       setInterval(function() {
         leaderboardUrl = document.getElementById('inputLeaderboard').value;
 
@@ -74,13 +89,25 @@
         fetch(leaderboardUrl)
           .then(response => response.json())
           .then(response => {
-            chart.data.datasets[0].data = response;
+            newData = replaceKeys(response, teamMap)
+            chart.data.datasets[0].data = newData;
             chart.update();
           })
           .catch(err => {
             console.log(err.message || err);
           })
       }, 10000);
+
+      // Function to replace keys with matching teamMap values
+      function replaceKeys(obj, map) {
+        Object.keys(obj).forEach(function(key) {
+          if (key in map) {
+            obj[map[key]] = obj[key];
+            delete obj[key];
+          }
+        });
+        return obj;
+      }
     </script>
 </body>
 
