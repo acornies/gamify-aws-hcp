@@ -142,7 +142,7 @@ resource "aws_db_instance" "leaderboard" {
   storage_type           = "gp2"
   engine                 = "postgres"
   engine_version         = "14.4"
-  instance_class         = "db.t3.micro"
+  instance_class         = "db.t3.large"
   db_name                = "leaderboard"
   username               = "vaultadmin"
   password               = random_password.password.result
@@ -185,6 +185,10 @@ resource "aws_iam_policy" "leaderboard" {
   })
 }
 
+resource "aws_iam_user" "vault_client" {
+  name = "vault-aws-auth-client"
+}
+
 resource "aws_iam_role" "leaderboard_http" {
   name = "leaderboard-http"
   assume_role_policy = jsonencode({
@@ -217,15 +221,33 @@ resource "aws_iam_role" "leaderboard_rec" {
   })
 }
 
+# attach the leaderboard IAM policy to the vault client
+resource "aws_iam_user_policy_attachment" "vault_client" {
+  user       = aws_iam_user.vault_client.name
+  policy_arn = aws_iam_policy.leaderboard.arn
+}
+
 # attach the leaderboard IAM policy to the leaderboard function roles
 resource "aws_iam_role_policy_attachment" "leaderboard_http" {
   role       = aws_iam_role.leaderboard_http.name
   policy_arn = aws_iam_policy.leaderboard.arn
 }
 
+# attach managed policy for cloud watch
+resource "aws_iam_role_policy_attachment" "leaderboard_http_logs" {
+  role       = aws_iam_role.leaderboard_http.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 resource "aws_iam_role_policy_attachment" "leaderboard_rec" {
   role       = aws_iam_role.leaderboard_rec.name
   policy_arn = aws_iam_policy.leaderboard.arn
+}
+
+# attach managed policy for cloud watch
+resource "aws_iam_role_policy_attachment" "leaderboard_rec_logs" {
+  role       = aws_iam_role.leaderboard_rec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 # Facilitator AWS-dependent Vault Resources
@@ -332,60 +354,60 @@ resource "vault_aws_auth_backend_role" "leaderboard_rec" {
   token_policies           = ["default", "${vault_policy.leaderboard_rec.name}"]
 }
 
-# Static hosting resources ofr frontend
+# Static hosting resources for frontend
 # ------------------------------
-resource "aws_s3_bucket" "leaderboard" {
-  bucket = "leaderboard-${var.event_name}"
-  tags = {
-    Environment = var.event_name
-  }
-}
+# resource "aws_s3_bucket" "leaderboard" {
+#   bucket = "leaderboard-${var.event_name}"
+#   tags = {
+#     Environment = var.event_name
+#   }
+# }
 
-resource "aws_s3_bucket_ownership_controls" "leaderboard" {
-  bucket = aws_s3_bucket.leaderboard.id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
+# resource "aws_s3_bucket_ownership_controls" "leaderboard" {
+#   bucket = aws_s3_bucket.leaderboard.id
+#   rule {
+#     object_ownership = "BucketOwnerPreferred"
+#   }
+# }
 
-resource "aws_s3_bucket_public_access_block" "leaderboard" {
-  bucket = aws_s3_bucket.leaderboard.id
+# resource "aws_s3_bucket_public_access_block" "leaderboard" {
+#   bucket = aws_s3_bucket.leaderboard.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
+#   block_public_acls       = false
+#   block_public_policy     = false
+#   ignore_public_acls      = false
+#   restrict_public_buckets = false
+# }
 
-resource "aws_s3_bucket_acl" "leaderboard" {
-  depends_on = [
-    aws_s3_bucket_ownership_controls.leaderboard,
-    aws_s3_bucket_public_access_block.leaderboard,
-  ]
-  bucket = aws_s3_bucket.leaderboard.id
-  acl    = "public-read"
-}
+# resource "aws_s3_bucket_acl" "leaderboard" {
+#   depends_on = [
+#     aws_s3_bucket_ownership_controls.leaderboard,
+#     aws_s3_bucket_public_access_block.leaderboard,
+#   ]
+#   bucket = aws_s3_bucket.leaderboard.id
+#   acl    = "public-read"
+# }
 
-resource "aws_s3_object" "leaderboard_http" {
-  bucket = aws_s3_bucket.leaderboard.id
-  key    = "index.html"
-  source = "../src/leaderboard-frontend/index.html"
-  etag   = filemd5("../src/leaderboard-frontend/index.html")
-}
+# resource "aws_s3_object" "leaderboard_http" {
+#   bucket = aws_s3_bucket.leaderboard.id
+#   key    = "index.html"
+#   source = "../src/leaderboard-frontend/index.html"
+#   etag   = filemd5("../src/leaderboard-frontend/index.html")
+# }
 
-resource "aws_s3_bucket_cors_configuration" "leaderboard_http" {
-  bucket = aws_s3_bucket.leaderboard.id
+# resource "aws_s3_bucket_cors_configuration" "leaderboard_http" {
+#   bucket = aws_s3_bucket.leaderboard.id
 
-  cors_rule {
-    allowed_methods = ["GET"]
-    allowed_origins = ["*"]
-  }
-}
+#   cors_rule {
+#     allowed_methods = ["GET"]
+#     allowed_origins = ["*"]
+#   }
+# }
 
-resource "aws_s3_bucket_website_configuration" "leaderboard" {
-  bucket = aws_s3_bucket.leaderboard.id
+# resource "aws_s3_bucket_website_configuration" "leaderboard" {
+#   bucket = aws_s3_bucket.leaderboard.id
 
-  index_document {
-    suffix = "index.html"
-  }
-}
+#   index_document {
+#     suffix = "index.html"
+#   }
+# }
