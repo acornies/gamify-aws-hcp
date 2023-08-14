@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+  - AWS::LanguageExtensions
+  - AWS::Serverless-2016-10-31
+Description: scs-client
+
+Parameters:
+  LambdaPackageBucketName:
+    Type: String
+    Description: Bucket to be used by EventEngine.
+    Default: ws-assets-prod-iad-r-iad-ed304a55c2ca1aee
+  LambdaPackageBucketPrefix:
+    Type: String
+    Description: Prefix to be used by EventEngine.
+    Default: e0217a91-5cf1-4e0b-abd8-34ac5835c23b/
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Mappings: 
+  WorkshopStudio: 
+    us-east-1: 
+      LambdaPackageBucketName: ws-assets-prod-iad-r-iad-ed304a55c2ca1aee
+      LambdaPackageBucketPrefix: e0217a91-5cf1-4e0b-abd8-34ac5835c23b/
+    us-east-2: 
+      LambdaPackageBucketName: ws-assets-prod-iad-r-cmh-8d6e9c21a4dec77d
+      LambdaPackageBucketPrefix: e0217a91-5cf1-4e0b-abd8-34ac5835c23b/
+    us-west-2: 
+      LambdaPackageBucketName: ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0
+      LambdaPackageBucketPrefix: e0217a91-5cf1-4e0b-abd8-34ac5835c23b/
+
+Resources:
+  SCSClient:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: scs-client/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Role: !GetAtt SCSClientRole.Arn
+      Environment:
+        Variables:
+          score_config_bucket: !FindInMap [WorkshopStudio, !Ref "AWS::Region", LambdaPackageBucketName]
+          score_config_key: !Sub
+            - ${ObjectPrefix}score_config.json
+            - ObjectPrefix: !FindInMap [WorkshopStudio, !Ref "AWS::Region", LambdaPackageBucketPrefix]
+      Events:
+        ScheduleEvent:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: "rate(1 minute)"
+
+  SCSClientRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: "Cloud Control API requires resource scope to *"
+    Properties:
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Policies:
+        - PolicyName: "SCSClient"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:              
+              - Sid: AllowSSMParam
+                Effect: Allow
+                Action:
+                  - ssm:GetParametersByPath
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/scs/client*
+              - Sid: GetConfig
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::${LambdaPackageBucketName}/${LambdaPackageBucketPrefix}*
+              - Sid: AllowSendScore
+                Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  - !Sub arn:${AWS::Partition}:sqs:${AWS::Region}:*:*
+              - Sid: AllowCCAPI
+                Effect: Allow
+                Action:
+                  - cloudformation:GetResources
+                  - cloudformation:ListResources 
+                Resource:
+                  - "*"
+              - Sid: PassRole
+                Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:PassRole
+                Resource:
+                  - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/WSParticipantRole
+              - Sid: AllowToWriteCloudWatchLog
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:CreateLogGroup
+                Resource:
+                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*
+
+Outputs:  
+  SCSClient:
+    Description: "SCS Client Lambda Function ARN"
+    Value: !GetAtt SCSClient.Arn
