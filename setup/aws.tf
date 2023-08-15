@@ -3,6 +3,7 @@
 
 provider "aws" {
   region = var.region
+  # region = "us-west-2"
 }
 
 data "aws_caller_identity" "current" {}
@@ -299,11 +300,17 @@ resource "vault_database_secrets_mount" "leaderboard" {
 # vault write auth/aws/config/client \
 #   access_key= \
 #   secret_key=
-# resource "vault_aws_auth_backend_client" "gamify" {
-#   backend    = vault_auth_backend.aws.path
-#   access_key = ""
-#   secret_key = ""
-# }
+
+resource "aws_iam_access_key" "vault_client" {
+  user = aws_iam_user.vault_client.name
+}
+
+resource "vault_aws_auth_backend_client" "leaderboard" {
+  namespace  = vault_namespace.facilitator.path_fq
+  backend    = vault_auth_backend.aws.path
+  access_key = aws_iam_access_key.vault_client.id
+  secret_key = aws_iam_access_key.vault_client.secret
+}
 
 # The leaderboard-http func only needs read access to the database
 resource "vault_database_secret_backend_role" "leaderboard_http" {
@@ -342,6 +349,7 @@ resource "vault_aws_auth_backend_role" "leaderboard_http" {
   bound_iam_principal_arns = ["${aws_iam_role.leaderboard_http.arn}"]
   token_ttl                = 21600
   token_policies           = ["default", "${vault_policy.leaderboard.name}"]
+  depends_on               = [vault_aws_auth_backend_client.leaderboard]
 }
 
 resource "vault_aws_auth_backend_role" "leaderboard_rec" {
@@ -352,6 +360,7 @@ resource "vault_aws_auth_backend_role" "leaderboard_rec" {
   bound_iam_principal_arns = ["${aws_iam_role.leaderboard_rec.arn}"]
   token_ttl                = 21600
   token_policies           = ["default", "${vault_policy.leaderboard_rec.name}"]
+  depends_on               = [vault_aws_auth_backend_client.leaderboard]
 }
 
 # Static hosting resources for frontend

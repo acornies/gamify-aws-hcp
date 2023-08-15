@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,6 +21,9 @@ import (
 )
 
 func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 
 	fmt.Println("Started processing request, secrets injected")
 
@@ -60,7 +64,7 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 	fmt.Println("Successfully connected to the database")
 
 	// Get the scores from the database
-	rows, err := db.QueryContext(ctx, "SELECT team_id, SUM(score_value) FROM scores GROUP BY team_id")
+	rows, err := db.QueryContext(ctx, "SELECT team_id, SUM(score_value) AS total FROM scores GROUP BY team_id ORDER BY total DESC")
 	if err != nil {
 		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
 	}
