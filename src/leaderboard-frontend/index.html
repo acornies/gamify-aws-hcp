@@ -10,15 +10,14 @@
 
 <body>
 
-  <div class="container-fluid">
-    <h1>Gamify AWS and HCP Leaderboard</h1>
+  <div class="container-fluid" style="padding-top: 15px;">
     <div class="form-group">
       <input type="text" class="form-control" id="inputLeaderboard" placeholder="Enter function URL">
     </div>
     <div>
-        <canvas id="myChart"></canvas>
+      <canvas id="myChart"></canvas>
     </div>
-      
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -26,11 +25,11 @@
       // Example map new team label to account id
       // TODO: Create UI elements to populate this map
       const teamMap = {
-        '125900228299': 'Bit Lords',
+        '267928207442': 'Bit Lords',
         '417385266434': 'Byte Dogs',
         '470059844023': 'Hugs for Bugs',
-        '818834411792': 'Bootstrap Trojans',
-        '0': 'Reboot Rebels',
+        '877110321162': 'Bootstrap Trojans',
+        '123456789': 'Reboot Rebels',
         '1': 'Debug Thugs',
       };
 
@@ -59,17 +58,45 @@
           datasets: [{
             label: '# of points',
             data: [],
-            borderWidth: 1
+            borderWidth: 2,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.4)',
+              'rgba(255, 159, 64, 0.4)',
+              'rgba(255, 205, 86, 0.4)',
+              'rgba(75, 192, 192, 0.4)',
+              'rgba(54, 162, 235, 0.4)',
+              'rgba(153, 102, 255, 0.4)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132)',
+              'rgba(255, 159, 64)',
+              'rgba(255, 205, 86)',
+              'rgba(75, 192, 192)',
+              'rgba(54, 162, 235)',
+              'rgba(153, 102, 255)'
+            ],
           }]
         },
         options: {
           layout: {
-            padding: 20
+            padding: 15
           },
           responsive: true,
           plugins: {
-            colors: {
-              enabled: true
+            legend: {
+                display: true,
+                labels:[]
+            },
+            title: {
+              display: true,
+              text: 'TMX Gamify Leaderboard',
+              font: {
+                size: 20},
+              color: 'black'
+            },
+            subtitle: {
+              display: true,
+              text: 'Points are accumulated by relevant AWS resources and processed SQS messages'
             }
           },
           scales: {
@@ -92,6 +119,7 @@
             newData = replaceKeys(response, teamMap)
             chart.data.datasets[0].data = newData;
             chart.update();
+            chart.resize();
           })
           .catch(err => {
             console.log(err.message || err);
