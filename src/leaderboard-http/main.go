@@ -55,7 +55,7 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 	}
 
 	// Connect to the database and insert the registration
-	connStr := fmt.Sprintf("postgres://%s:%s@%s?sslmode=disable", secret.Data["username"], secret.Data["password"], dbURL)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s", secret.Data["username"], secret.Data["password"], dbURL)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: http.StatusInternalServerError}, err
